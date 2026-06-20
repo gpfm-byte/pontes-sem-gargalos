@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Veneza — plataforma de integração de dados de tráfego do Recife" />
+    <link rel="icon" type="image/png" href="/veneza-logo.png" />
+    <title>Veneza — Tráfego Recife</title>
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('veneza-theme');
+          var d = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (d) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

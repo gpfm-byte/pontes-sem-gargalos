@@ -1,0 +1,21 @@
+# Node / front
+node_modules/
+dist/
+*.local
+
+# Python / backend
+backend/.venv/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# Env (config local — use os .env.example como modelo)
+.env
+backend/.env
+
+# Config de MCP/intercom (contém secret) — não publicar
+.mcp.json
+
+# Editor / SO
+.DS_Store
+*.log

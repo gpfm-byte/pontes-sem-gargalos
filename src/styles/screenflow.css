@@ -1,0 +1,368 @@
+/* ====================================
+   Screen Flow - Styles Organizados
+   ==================================== */
+
+/* Reset de outline para toda a página Screen Flow */
+.screenflow-container,
+.screenflow-container * {
+  outline: none !important;
+}
+
+.screenflow-container *:focus,
+.screenflow-container *:focus-visible,
+.screenflow-container *:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Container principal */
+.screenflow-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* ====================================
+   Header
+   ==================================== */
+.screenflow-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.screenflow-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.screenflow-stat {
+  text-align: center;
+}
+
+.screenflow-stat-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.screenflow-stat-label {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* ====================================
+   Navegação Rápida
+   ==================================== */
+.screenflow-nav {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.screenflow-nav-title {
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.screenflow-nav-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.screenflow-nav-btn {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.screenflow-nav-btn.blue {
+  background: rgba(59, 130, 246, 0.1);
+  color: rgb(37, 99, 235);
+}
+
+.screenflow-nav-btn.blue:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.screenflow-nav-btn.purple {
+  background: rgba(168, 85, 247, 0.1);
+  color: rgb(147, 51, 234);
+}
+
+.screenflow-nav-btn.purple:hover {
+  background: rgba(168, 85, 247, 0.2);
+}
+
+.screenflow-nav-btn.green {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(22, 163, 74);
+}
+
+.screenflow-nav-btn.green:hover {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+/* ====================================
+   Sections
+   ==================================== */
+.screenflow-section {
+  margin-bottom: 1.5rem;
+  scroll-margin-top: 1rem;
+}
+
+/* Section Header */
+.screenflow-section-header {
+  border: 2px solid;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.screenflow-section-header.blue {
+  border-color: rgb(59, 130, 246);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.screenflow-section-header.purple {
+  border-color: rgb(168, 85, 247);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.screenflow-section-header.green {
+  border-color: rgb(34, 197, 94);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.screenflow-section-toggle {
+  width: 100%;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.screenflow-section-toggle:hover {
+  opacity: 0.8;
+}
+
+.screenflow-section-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.screenflow-icon-wrapper {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.screenflow-icon-wrapper.blue {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.screenflow-icon-wrapper.purple {
+  background: rgba(168, 85, 247, 0.2);
+}
+
+.screenflow-icon-wrapper.green {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.screenflow-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.screenflow-icon.blue {
+  color: rgb(37, 99, 235);
+}
+
+.screenflow-icon.purple {
+  color: rgb(147, 51, 234);
+}
+
+.screenflow-icon.green {
+  color: rgb(22, 163, 74);
+}
+
+.screenflow-text {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.screenflow-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.screenflow-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.screenflow-badge.blue {
+  background: rgba(59, 130, 246, 0.2);
+  color: rgb(37, 99, 235);
+}
+
+.screenflow-badge.purple {
+  background: rgba(168, 85, 247, 0.2);
+  color: rgb(147, 51, 234);
+}
+
+.screenflow-badge.green {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(22, 163, 74);
+}
+
+.screenflow-description {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.screenflow-chevron {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+/* Section Content */
+.screenflow-section-content {
+  border: 2px solid;
+  border-top: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+  background: var(--background);
+}
+
+.screenflow-section-content.blue {
+  border-color: rgb(59, 130, 246);
+}
+
+.screenflow-section-content.purple {
+  border-color: rgb(168, 85, 247);
+}
+
+.screenflow-section-content.green {
+  border-color: rgb(34, 197, 94);
+}
+
+/* ====================================
+   Footer
+   ==================================== */
+.screenflow-footer {
+  background: linear-gradient(
+    to right,
+    rgba(59, 130, 246, 0.1),
+    rgba(168, 85, 247, 0.1),
+    rgba(34, 197, 94, 0.1)
+  );
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.screenflow-footer-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.screenflow-footer-description {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+.screenflow-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.screenflow-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+}
+
+.screenflow-tag.blue {
+  background: rgba(59, 130, 246, 0.2);
+  color: rgb(37, 99, 235);
+}
+
+.screenflow-tag.purple {
+  background: rgba(168, 85, 247, 0.2);
+  color: rgb(147, 51, 234);
+}
+
+.screenflow-tag.green {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(22, 163, 74);
+}
+
+.screenflow-tag.orange {
+  background: rgba(249, 115, 22, 0.2);
+  color: rgb(234, 88, 12);
+}
+
+.screenflow-tag.red {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgb(220, 38, 38);
+}
+
+/* ====================================
+   Responsive
+   ==================================== */
+@media (max-width: 640px) {
+  .screenflow-container {
+    padding: 0.75rem;
+  }
+
+  .screenflow-section-toggle {
+    padding: 1rem;
+  }
+
+  .screenflow-icon-wrapper {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .screenflow-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .screenflow-stat-value {
+    font-size: 1.5rem;
+  }
+}
