@@ -86,3 +86,52 @@ export interface DadoEficiencia {
   antesMin: number;
   depoisMin: number;
 }
+
+// ─── Câmeras COP — Pipeline LGPD ─────────────────────────────────────────────
+
+// Evento bruto da câmera — contém PII, NUNCA sai do pipeline
+export interface EventoCameraRaw {
+  cameraId: string;
+  ponteId: string;
+  timestamp: Date;
+  placa: string;           // PII — descartado pelo pipeline
+  rostoDetectado: boolean; // dado biométrico (Art. 11 LGPD) — descartado
+  idMotorista: string;     // PII — descartado
+  velocidade: number;      // km/h
+  tipoVeiculo: TipoModal;
+}
+
+// Saída do pipeline — sem nenhum dado pessoal
+export interface EventoCameraAgregado {
+  ponteId: string;
+  janelaInicio: Date;
+  janelaFim: Date;
+  totalVeiculos: number;
+  velocidadeMedia: number;
+  distribuicaoModal: Record<TipoModal, number>;
+  kAnonimato: number;              // k efetivo da janela (sempre ≥ K_MINIMO)
+  dadosPessoaisDescartados: true;  // literal para auditoria
+  conformeLGPD: true;
+}
+
+// Relatório consolidado: conformidade LGPD + dados de tráfego
+export interface RelatorioCameraLGPD {
+  geradoEm: Date;
+  periodo: { inicio: Date; fim: Date };
+  lgpd: {
+    totalEventosBrutos: number;
+    janelasProcessadas: number;
+    janelasSuprimidas: number;
+    taxaSupressao: number;       // 0–1
+    camposDescartados: string[];
+    kMedio: number;
+    baseJuridicaAplicada: string;
+  };
+  trafego: Array<{
+    ponteId: string;
+    totalVeiculos: number;
+    velocidadeMedia: number;
+    distribuicaoModal: Record<TipoModal, number>;
+    janelaComPicoVeiculos: Date;
+  }>;
+}
