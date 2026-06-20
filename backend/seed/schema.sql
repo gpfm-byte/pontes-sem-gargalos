@@ -29,12 +29,19 @@ CREATE TABLE IF NOT EXISTS leituras_sensor (
 -- Transforma em hypertable (particionamento automático por tempo)
 SELECT create_hypertable('leituras_sensor', 'timestamp', if_not_exists => TRUE);
 
--- Compressão automática de dados com mais de 7 dias
-ALTER TABLE leituras_sensor SET (
-  timescaledb.compress,
-  timescaledb.compress_segmentby = 'ponte_id'
-);
-SELECT add_compression_policy('leituras_sensor', INTERVAL '7 days', if_not_exists => TRUE);
+-- Compressão automática de dados com mais de 7 dias.
+-- Recurso do TimescaleDB community/cloud; no Apache Edition (pacote do Fedora)
+-- é ignorado graciosamente — não é requisito para o PoC.
+DO $$
+BEGIN
+  ALTER TABLE leituras_sensor SET (
+    timescaledb.compress,
+    timescaledb.compress_segmentby = 'ponte_id'
+  );
+  PERFORM add_compression_policy('leituras_sensor', INTERVAL '7 days', if_not_exists => TRUE);
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'Compressao TimescaleDB indisponivel (Apache Edition): %', SQLERRM;
+END $$;
 
 -- 3. Previsões da IA (roadmap fase 2 — não usado pelo produto atual)
 CREATE TABLE IF NOT EXISTS previsoes_ia (
