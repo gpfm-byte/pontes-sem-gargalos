@@ -5,9 +5,11 @@ import { pontesService } from '../../services/PontesService';
 import { usePontesData } from '../hooks/usePontesData';
 
 export function Dashboard() {
-  const fluxoData = usePontesData(() => pontesService.getFluxoPorHora(), []);
-  const statusPontes = usePontesData(() => pontesService.getStatusPontes(), []);
-  const alertas = usePontesData(() => pontesService.getAlertasAtivos(), []);
+  // Polling de 4s: reflete o feed ao vivo (simulador de tempo real da CTTU).
+  const LIVE_MS = 4000;
+  const fluxoData = usePontesData(() => pontesService.getFluxoPorHora(), [], LIVE_MS);
+  const statusPontes = usePontesData(() => pontesService.getStatusPontes(), [], LIVE_MS);
+  const alertas = usePontesData(() => pontesService.getAlertasAtivos(), [], LIVE_MS);
 
   const pontesData = statusPontes.map(s => ({
     ponte: s.ponte.nome,

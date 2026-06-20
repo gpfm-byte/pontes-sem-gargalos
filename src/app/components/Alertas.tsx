@@ -10,7 +10,8 @@ function tempoRelativo(data: Date): string {
 }
 
 export function Alertas() {
-  const alertasAtivosRaw = usePontesData(() => pontesService.getAlertasAtivos(), []);
+  // Polling de 4s: reflete o feed ao vivo (simulador de tempo real da CTTU).
+  const alertasAtivosRaw = usePontesData(() => pontesService.getAlertasAtivos(), [], 4000);
   const pontes = usePontesData(() => pontesService.getPontes(), []);
 
   const alertas = alertasAtivosRaw.map(a => {
