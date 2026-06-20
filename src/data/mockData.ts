@@ -1,6 +1,6 @@
 import type {
   Ponte, LeituraSensor, PrevisaoIA, Alerta, LogAuditoria,
-  StatusPonteUI, PontoFluxo, DadoEficiencia,
+  StatusPonteUI, PontoFluxo, DadoEficiencia, EventoCameraRaw, TipoModal,
 } from './types';
 
 // ─── Pontes do Bairro do Recife ───────────────────────────────────────────────
@@ -193,3 +193,36 @@ export const LOG_AUDITORIA: LogAuditoria[] = [
     hash: 'b1c4e7a2d5f8b3c6e9a2d5f8b1c4e7a2',
   },
 ];
+
+// ─── Mock de câmeras COP (dados com PII — input do pipeline LGPD) ─────────────
+
+function gerarPlaca(): string {
+  const letra = () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)];
+  const letras = () => `${letra()}${letra()}${letra()}`;
+  const digito = () => Math.floor(Math.random() * 10);
+  // 50% Mercosul (ABC1D23), 50% antigo (ABC-1234)
+  if (Math.random() >= 0.5) {
+    return `${letras()}${digito()}${letra()}${digito()}${digito()}`;
+  }
+  return `${letras()}-${digito()}${digito()}${digito()}${digito()}`;
+}
+
+export function gerarEventosCameraRaw(n: number, ponteId: string): EventoCameraRaw[] {
+  const TIPOS: TipoModal[] = ['carro', 'onibus', 'bicicleta', 'a_pe'];
+  const agora = new Date();
+  const horaAtual = agora.getHours() + agora.getMinutes() / 60;
+
+  return Array.from({ length: n }, (_, i) => {
+    const defasagemMs = Math.floor(Math.random() * 10 * 60 * 1000); // últimos 10 min
+    return {
+      cameraId: `CAM-${ponteId.slice(0, 3).toUpperCase()}-${String(Math.floor(i / 5) + 1).padStart(2, '0')}`,
+      ponteId,
+      timestamp: new Date(agora.getTime() - defasagemMs),
+      placa: gerarPlaca(),
+      rostoDetectado: Math.random() < 0.3,
+      idMotorista: `MOT-${Math.floor(10000 + Math.random() * 90000)}`,
+      velocidade: Math.max(5, jitter(Math.round(curvaTrafegoHora(horaAtual) * 60), 0.3)),
+      tipoVeiculo: TIPOS[Math.floor(Math.random() * TIPOS.length)],
+    };
+  });
+}
