@@ -71,7 +71,7 @@ async def main() -> None:
         n = await conn.fetchval("SELECT count(*) FROM leituras_sensor")
         print(f"leituras_sensor: {n} linhas gravadas (dia {dia})")
 
-        criados, _ = await sincronizar_alertas(conn)
+        criados, _, _ = await sincronizar_alertas(conn)
         print(f"alertas: {len(criados)} aberto(s) a partir do status atual")
     finally:
         await conn.close()

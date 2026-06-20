@@ -15,7 +15,9 @@ export function Dashboard() {
     ponte: s.ponte.nome,
     ocupacao: s.leituraAtual.ocupacaoPct,
   }));
-  const congestionamentos = alertas.filter(a => a.tipo === 'congestionamento').length;
+  // getAlertasAtivos pode trazer resolvidos recentes; aqui contamos só os ativos.
+  const alertasAtivos = alertas.filter(a => a.resolvidoEm === null);
+  const congestionamentos = alertasAtivos.filter(a => a.tipo === 'congestionamento').length;
 
   // Métricas derivadas do serviço (antes: strings fixas)
   const fluxoTotal = statusPontes.reduce((s, p) => s + p.leituraAtual.veiculosPorHora, 0);
@@ -46,7 +48,7 @@ export function Dashboard() {
         />
         <StatCard
           title="Alertas Ativos"
-          value={String(alertas.length)}
+          value={String(alertasAtivos.length)}
           subtitle={`${congestionamentos} congestionamentos`}
           icon={AlertTriangle}
           trend="up"

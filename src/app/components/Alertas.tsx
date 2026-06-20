@@ -17,8 +17,8 @@ export function Alertas() {
   const alertas = alertasAtivosRaw.map(a => {
     const ponte = pontes.find(p => p.id === a.ponteId);
     const nivelParaTipo: Record<string, string> = {
-      alto: 'crítico', critico: 'crítico',
-      medio: 'aviso', baixo: 'info',
+      critico: 'crítico', alto: 'aviso',
+      medio: 'info', baixo: 'info',
     };
     const tipo = nivelParaTipo[a.nivel] ?? 'info';
     const icone = tipo === 'crítico' ? XCircle : tipo === 'aviso' ? AlertTriangle : Info;
@@ -77,6 +77,12 @@ export function Alertas() {
   const alertasAtivos = alertas.filter(a => a.ativo);
   const alertasInativos = alertas.filter(a => !a.ativo);
 
+  // Contagens derivadas dos dados ao vivo (antes: valores fixos no JSX).
+  const nCriticos = alertasAtivos.filter(a => a.tipo === 'crítico').length;
+  const nAvisos = alertasAtivos.filter(a => a.tipo === 'aviso').length;
+  const nInformativos = alertasAtivos.filter(a => a.tipo === 'info').length;
+  const nResolvidos = alertasInativos.length;
+
   return (
     <div className="max-w-[1400px] mx-auto p-4 space-y-6">
       {/* Summary Cards */}
@@ -86,28 +92,28 @@ export function Alertas() {
             <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
             <span className="text-xs sm:text-sm text-muted-foreground">Críticos</span>
           </div>
-          <p className="text-xl sm:text-2xl">2</p>
+          <p className="text-xl sm:text-2xl">{nCriticos}</p>
         </div>
         <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 sm:p-4">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
             <span className="text-xs sm:text-sm text-muted-foreground">Avisos</span>
           </div>
-          <p className="text-xl sm:text-2xl">1</p>
+          <p className="text-xl sm:text-2xl">{nAvisos}</p>
         </div>
         <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 sm:p-4">
           <div className="flex items-center gap-2 mb-2">
             <Info className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             <span className="text-xs sm:text-sm text-muted-foreground">Informativos</span>
           </div>
-          <p className="text-xl sm:text-2xl">1</p>
+          <p className="text-xl sm:text-2xl">{nInformativos}</p>
         </div>
         <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 sm:p-4">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             <span className="text-xs sm:text-sm text-muted-foreground">Resolvidos</span>
           </div>
-          <p className="text-xl sm:text-2xl">1</p>
+          <p className="text-xl sm:text-2xl">{nResolvidos}</p>
         </div>
       </div>
 

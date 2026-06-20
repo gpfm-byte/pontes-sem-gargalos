@@ -36,7 +36,7 @@ class Repository(Protocol):
     async def get_pontes(self) -> list[Ponte]: ...
     async def latest_day(self) -> Optional[date]: ...
     async def get_leituras(self, ponte_id: str, dia: date) -> list[LeituraSensor]: ...
-    async def get_alertas_ativos(self) -> list[Alerta]: ...
+    async def get_alertas_recentes(self) -> list[Alerta]: ...
     async def ping(self) -> bool: ...
 
 
@@ -71,11 +71,14 @@ class PgRepository:
         )
         return [_leitura_from_row(r) for r in rows]
 
-    async def get_alertas_ativos(self) -> list[Alerta]:
+    async def get_alertas_recentes(self) -> list[Alerta]:
+        # Ativos + resolvidos nas últimas 3h (para o card Resolvidos e o Histórico).
         rows = await self.pool.fetch(
             "SELECT id, ponte_id, tipo, nivel, mensagem, criado_em, "
             "       resolvido_em, gerado_por_ia "
-            "FROM alertas WHERE resolvido_em IS NULL ORDER BY criado_em DESC"
+            "FROM alertas "
+            "WHERE resolvido_em IS NULL OR resolvido_em > now() - interval '3 hours' "
+            "ORDER BY (resolvido_em IS NULL) DESC, criado_em DESC"
         )
         return [
             Alerta(

@@ -9,5 +9,5 @@ router = APIRouter()
 
 @router.get("/alertas", response_model=list[Alerta])
 async def get_alertas(repo: Repository = Depends(get_repo)) -> list[Alerta]:
-    # Alertas ativos persistidos (gerados pelo sistema por threshold).
-    return await repo.get_alertas_ativos()
+    # Ativos + resolvidos recentes (o front separa por resolvidoEm).
+    return await repo.get_alertas_recentes()

@@ -1,8 +1,11 @@
 """Geração de alertas pelo sistema (por threshold, sem IA).
 
-Regra: um alerta ATIVO por ponte. Abre quando a ponte entra em
-congestionado/bloqueado e ainda não há alerta ativo; resolve (marca
-resolvido_em) quando a ponte volta a normal/atenção. Persistido na tabela
+Um alerta ATIVO por ponte, em três níveis conforme o status:
+  atenção      -> medio   (informativo)
+  congestionado-> alto    (aviso)
+  bloqueado    -> critico (crítico)
+Abre quando entra em alerta, ESCALA/DES-ESCALA o nível quando o status muda, e
+resolve (marca resolvido_em) quando volta ao normal. Persistido na tabela
 `alertas` — vira um log que cresce e se resolve ao longo do tempo.
 """
 from __future__ import annotations
@@ -12,7 +15,8 @@ from typing import NamedTuple
 
 from .compute import SENSOR_LABEL, derive_status
 
-EM_ALERTA = {"congestionado", "bloqueado"}
+# status -> nível do alerta (normal não gera alerta)
+NIVEL_POR_STATUS = {"atencao": "medio", "congestionado": "alto", "bloqueado": "critico"}
 
 
 class StatusAtual(NamedTuple):
@@ -22,25 +26,37 @@ class StatusAtual(NamedTuple):
     ocupacao: int
 
 
-def nivel_para(status: str) -> str:
-    return "critico" if status == "bloqueado" else "alto"
+def nivel_por_status(status: str) -> str | None:
+    return NIVEL_POR_STATUS.get(status)
 
 
-def decidir(statuses: list[StatusAtual], ativos: set[str]) -> tuple[list[StatusAtual], list[str]]:
-    """Decide o que abrir e o que resolver. Função pura — testável.
+def mensagem_de(s: StatusAtual) -> str:
+    sensor = SENSOR_LABEL.get(s.ponte_id, "CTTU")
+    return f"{s.nome}: ocupação em {s.ocupacao}% — sensor {sensor} ({s.status}, threshold)"
 
-    Retorna (a_criar, a_resolver_ponte_ids).
+
+def decidir(
+    statuses: list[StatusAtual], ativos: dict[str, str]
+) -> tuple[list[StatusAtual], list[StatusAtual], list[str]]:
+    """Decide o que abrir, atualizar e resolver. Função pura — testável.
+
+    `ativos`: ponte_id -> nível do alerta ativo atual.
+    Retorna (a_criar, a_atualizar, a_resolver_ponte_ids).
     """
     criar: list[StatusAtual] = []
+    atualizar: list[StatusAtual] = []
     resolver: list[str] = []
     for s in statuses:
-        em_alerta = s.status in EM_ALERTA
-        tem_ativo = s.ponte_id in ativos
-        if em_alerta and not tem_ativo:
+        desejado = nivel_por_status(s.status)
+        atual = ativos.get(s.ponte_id)
+        if desejado is None:
+            if atual is not None:
+                resolver.append(s.ponte_id)
+        elif atual is None:
             criar.append(s)
-        elif not em_alerta and tem_ativo:
-            resolver.append(s.ponte_id)
-    return criar, resolver
+        elif atual != desejado:
+            atualizar.append(s)
+    return criar, atualizar, resolver
 
 
 async def _status_atual(conn) -> list[StatusAtual]:
@@ -65,24 +81,28 @@ async def _status_atual(conn) -> list[StatusAtual]:
     return out
 
 
-async def sincronizar_alertas(conn) -> tuple[list[StatusAtual], list[str]]:
-    """Abre/resolve alertas conforme o status atual. Retorna (criados, resolvidos)."""
+async def sincronizar_alertas(conn) -> tuple[list[StatusAtual], list[StatusAtual], list[str]]:
+    """Abre/atualiza/resolve alertas conforme o status. Retorna (criados, atualizados, resolvidos)."""
     statuses = await _status_atual(conn)
     ativos = {
-        r["ponte_id"]
+        r["ponte_id"]: r["nivel"]
         for r in await conn.fetch(
-            "SELECT DISTINCT ponte_id FROM alertas WHERE resolvido_em IS NULL"
+            "SELECT ponte_id, nivel FROM alertas WHERE resolvido_em IS NULL"
         )
     }
-    criar, resolver = decidir(statuses, ativos)
+    criar, atualizar, resolver = decidir(statuses, ativos)
 
     for s in criar:
-        sensor = SENSOR_LABEL.get(s.ponte_id, "CTTU")
         await conn.execute(
             "INSERT INTO alertas (ponte_id, tipo, nivel, mensagem, gerado_por_ia) "
             "VALUES ($1, 'congestionamento', $2, $3, FALSE)",
-            s.ponte_id, nivel_para(s.status),
-            f"{s.nome}: ocupação em {s.ocupacao}% — sensor {sensor} (threshold)",
+            s.ponte_id, nivel_por_status(s.status), mensagem_de(s),
+        )
+    for s in atualizar:
+        await conn.execute(
+            "UPDATE alertas SET nivel = $2, mensagem = $3, criado_em = now() "
+            "WHERE ponte_id = $1 AND resolvido_em IS NULL",
+            s.ponte_id, nivel_por_status(s.status), mensagem_de(s),
         )
     for pid in resolver:
         await conn.execute(
@@ -90,4 +110,4 @@ async def sincronizar_alertas(conn) -> tuple[list[StatusAtual], list[str]]:
             "WHERE ponte_id = $1 AND resolvido_em IS NULL",
             pid,
         )
-    return criar, resolver
+    return criar, atualizar, resolver

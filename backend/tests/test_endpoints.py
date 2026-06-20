@@ -38,6 +38,11 @@ ALERTAS = [
            nivel="alto", mensagem="Giratória: ocupação em 80%",
            criado_em=datetime(2026, 6, 20, 12, 30, tzinfo=timezone.utc),
            resolvido_em=None, gerado_por_ia=False),
+    Alerta(id="a3", ponte_id="buarque-de-macedo", tipo="congestionamento",
+           nivel="medio", mensagem="Buarque: ocupação em 60%",
+           criado_em=datetime(2026, 6, 20, 11, 0, tzinfo=timezone.utc),
+           resolvido_em=datetime(2026, 6, 20, 11, 30, tzinfo=timezone.utc),
+           gerado_por_ia=False),
 ]
 
 
@@ -63,7 +68,7 @@ class FakeRepo:
             for h in range(24)
         ]
 
-    async def get_alertas_ativos(self):
+    async def get_alertas_recentes(self):
         return ALERTAS
 
     async def ping(self):
@@ -123,10 +128,12 @@ async def test_get_alertas_serve_persistidos(client):
     assert r.status_code == 200
     data = r.json()
     ids = {a["ponteId"]: a for a in data}
-    # buarque (normal) não tem alerta ativo; nassau e giratoria sim
-    assert "buarque-de-macedo" not in ids
+    # ativos (resolvidoEm == None)
     assert ids["mauricio-nassau"]["nivel"] == "critico"
+    assert ids["mauricio-nassau"]["resolvidoEm"] is None
     assert ids["giratoria"]["nivel"] == "alto"
+    # resolvido recente vem junto (para o histórico), com resolvidoEm preenchido
+    assert ids["buarque-de-macedo"]["resolvidoEm"] is not None
     assert all(a["geradoPorIA"] is False for a in data)
     assert all("criadoEm" in a for a in data)
 

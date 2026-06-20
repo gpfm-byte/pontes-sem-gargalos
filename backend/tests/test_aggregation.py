@@ -2,7 +2,7 @@
 from datetime import date
 
 from app.services import cttu
-from app.services.alertas import StatusAtual, decidir, nivel_para
+from app.services.alertas import StatusAtual, decidir, nivel_por_status
 from app.services.compute import derive_status, status_cor
 from app.services.ingest_math import build_leituras
 
@@ -76,25 +76,34 @@ def test_status_cor():
 
 def test_decidir_abre_alerta_quando_congestiona_sem_ativo():
     statuses = [StatusAtual("giratoria", "Giratória", "congestionado", 80)]
-    criar, resolver = decidir(statuses, ativos=set())
+    criar, atualizar, resolver = decidir(statuses, ativos={})
     assert [s.ponte_id for s in criar] == ["giratoria"]
-    assert resolver == []
+    assert atualizar == [] and resolver == []
 
 
-def test_decidir_nao_duplica_alerta_ativo():
+def test_decidir_nao_duplica_alerta_de_mesmo_nivel():
     statuses = [StatusAtual("giratoria", "Giratória", "bloqueado", 95)]
-    criar, resolver = decidir(statuses, ativos={"giratoria"})
+    criar, atualizar, resolver = decidir(statuses, ativos={"giratoria": "critico"})
+    assert criar == [] and atualizar == [] and resolver == []
+
+
+def test_decidir_escala_quando_nivel_muda():
+    statuses = [StatusAtual("giratoria", "Giratória", "bloqueado", 95)]
+    criar, atualizar, resolver = decidir(statuses, ativos={"giratoria": "alto"})
     assert criar == []
+    assert [s.ponte_id for s in atualizar] == ["giratoria"]
     assert resolver == []
 
 
 def test_decidir_resolve_quando_normaliza():
     statuses = [StatusAtual("giratoria", "Giratória", "normal", 30)]
-    criar, resolver = decidir(statuses, ativos={"giratoria"})
-    assert criar == []
+    criar, atualizar, resolver = decidir(statuses, ativos={"giratoria": "alto"})
+    assert criar == [] and atualizar == []
     assert resolver == ["giratoria"]
 
 
-def test_nivel_para():
-    assert nivel_para("bloqueado") == "critico"
-    assert nivel_para("congestionado") == "alto"
+def test_nivel_por_status():
+    assert nivel_por_status("atencao") == "medio"
+    assert nivel_por_status("congestionado") == "alto"
+    assert nivel_por_status("bloqueado") == "critico"
+    assert nivel_por_status("normal") is None

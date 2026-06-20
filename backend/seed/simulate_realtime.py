@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.config import settings  # noqa: E402
 from app.services.cttu import CAPACIDADES, SENSOR_MAP  # noqa: E402
 from app.services.compute import derive_status  # noqa: E402
-from app.services.alertas import nivel_para, sincronizar_alertas  # noqa: E402
+from app.services.alertas import nivel_por_status, sincronizar_alertas  # noqa: E402
 
 PONTES = list(CAPACIDADES.keys())
 
@@ -141,11 +141,14 @@ async def main() -> None:
                       f"🚗 +{carros} (Σ {total[ponte]:>3}) | {vph:>4} v/h | "
                       f"{occ:>3}% ocup | {vel:>2.0f} km/h | {status}")
 
-            # O sistema abre/resolve alertas conforme o status muda.
-            criados, resolvidos = await sincronizar_alertas(conn)
+            # O sistema abre/escala/resolve alertas conforme o status muda.
+            criados, atualizados, resolvidos = await sincronizar_alertas(conn)
             for s in criados:
-                print(f"   🚨 ALERTA aberto: {s.nome} ({nivel_para(s.status)}) "
+                print(f"   🚨 ALERTA aberto: {s.nome} ({nivel_por_status(s.status)}) "
                       f"— {s.ocupacao}% ocupação")
+            for s in atualizados:
+                print(f"   🔀 alerta atualizado: {s.nome} → {nivel_por_status(s.status)} "
+                      f"({s.ocupacao}%)")
             for pid in resolvidos:
                 print(f"   ✅ alerta resolvido: {pid} (normalizou)")
             print()
