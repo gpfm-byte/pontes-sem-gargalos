@@ -61,7 +61,7 @@ function agregar(janela: JanelaCamera): EventoCameraAgregado {
     totalVeiculos,
     velocidadeMedia,
     distribuicaoModal,
-    kAnonimato: totalVeiculos,
+    kAnonimato: totalVeiculos, // k por volume temporal (modelo simplificado — não k-anonimato formal de quasi-identifiers)
     dadosPessoaisDescartados: true,
     conformeLGPD: true,
   };
@@ -86,12 +86,13 @@ export function gerarRelatorio(
   agregados: EventoCameraAgregado[],
   periodo: { inicio: Date; fim: Date },
   totalBrutos: number,
+  totalJanelasAttempted?: number, // se omitido, usa estimativa (imprecisa — prefer fornecer explicitamente)
 ): RelatorioCameraLGPD {
   const totalJanelas = agregados.length;
   // janelasSuprimidas é inferido: total de janelas que seriam geradas sem k-anonimato
   // Como só recebemos as válidas, calculamos a partir da taxa de supressão esperada.
   // Aqui usamos a convenção: totalBrutos / k como estimativa do total de janelas tentadas.
-  const janelasEstimadas = Math.ceil(totalBrutos / K_MINIMO);
+  const janelasEstimadas = totalJanelasAttempted ?? Math.ceil(totalBrutos / K_MINIMO);
   const janelasSuprimidas = Math.max(0, janelasEstimadas - totalJanelas);
   const taxaSupressao = janelasEstimadas > 0
     ? Math.round((janelasSuprimidas / janelasEstimadas) * 1000) / 1000
