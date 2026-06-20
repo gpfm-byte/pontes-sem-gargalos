@@ -109,9 +109,11 @@ export function gerarRelatorio(
 
   const trafego = Array.from(porPonte.entries()).map(([ponteId, ags]) => {
     const totalVeiculos = ags.reduce((s, a) => s + a.totalVeiculos, 0);
-    const velocidadeMedia = Math.round(
-      ags.reduce((s, a) => s + a.velocidadeMedia * a.totalVeiculos, 0) / totalVeiculos * 10
-    ) / 10;
+    const velocidadeMedia = totalVeiculos > 0
+      ? Math.round(
+          ags.reduce((s, a) => s + a.velocidadeMedia * a.totalVeiculos, 0) / totalVeiculos * 10
+        ) / 10
+      : 0;
 
     const distribuicaoModal: Record<TipoModal, number> = {
       carro: 0, onibus: 0, bicicleta: 0, a_pe: 0,
@@ -122,14 +124,16 @@ export function gerarRelatorio(
       }
     }
 
-    const picoAg = ags.reduce((max, a) => a.totalVeiculos > max.totalVeiculos ? a : max, ags[0]);
+    const picoAg = ags.length > 0
+      ? ags.reduce((max, a) => a.totalVeiculos > max.totalVeiculos ? a : max, ags[0])
+      : null;
 
     return {
       ponteId,
       totalVeiculos,
       velocidadeMedia,
       distribuicaoModal,
-      janelaComPicoVeiculos: picoAg.janelaInicio,
+      janelaComPicoVeiculos: picoAg?.janelaInicio ?? new Date(0),
     };
   });
 
