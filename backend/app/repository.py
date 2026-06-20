@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Optional, Protocol
 
-from .schemas import Coordenadas, LeituraSensor, Ponte
+from .schemas import Alerta, Coordenadas, LeituraSensor, Ponte
 
 
 def _ponte_from_row(row) -> Ponte:
@@ -36,6 +36,7 @@ class Repository(Protocol):
     async def get_pontes(self) -> list[Ponte]: ...
     async def latest_day(self) -> Optional[date]: ...
     async def get_leituras(self, ponte_id: str, dia: date) -> list[LeituraSensor]: ...
+    async def get_alertas_ativos(self) -> list[Alerta]: ...
     async def ping(self) -> bool: ...
 
 
@@ -69,6 +70,26 @@ class PgRepository:
             dia,
         )
         return [_leitura_from_row(r) for r in rows]
+
+    async def get_alertas_ativos(self) -> list[Alerta]:
+        rows = await self.pool.fetch(
+            "SELECT id, ponte_id, tipo, nivel, mensagem, criado_em, "
+            "       resolvido_em, gerado_por_ia "
+            "FROM alertas WHERE resolvido_em IS NULL ORDER BY criado_em DESC"
+        )
+        return [
+            Alerta(
+                id=str(r["id"]),
+                ponte_id=r["ponte_id"],
+                tipo=r["tipo"],
+                nivel=r["nivel"],
+                mensagem=r["mensagem"],
+                criado_em=r["criado_em"],
+                resolvido_em=r["resolvido_em"],
+                gerado_por_ia=r["gerado_por_ia"],
+            )
+            for r in rows
+        ]
 
     async def ping(self) -> bool:
         return await self.pool.fetchval("SELECT 1") == 1

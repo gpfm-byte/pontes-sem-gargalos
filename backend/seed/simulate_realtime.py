@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.config import settings  # noqa: E402
 from app.services.cttu import CAPACIDADES, SENSOR_MAP  # noqa: E402
 from app.services.compute import derive_status  # noqa: E402
+from app.services.alertas import nivel_para, sincronizar_alertas  # noqa: E402
 
 PONTES = list(CAPACIDADES.keys())
 
@@ -139,6 +140,14 @@ async def main() -> None:
                 print(f"   {STATUS_ICON[status]} {eq} → {ponte:<18} "
                       f"🚗 +{carros} (Σ {total[ponte]:>3}) | {vph:>4} v/h | "
                       f"{occ:>3}% ocup | {vel:>2.0f} km/h | {status}")
+
+            # O sistema abre/resolve alertas conforme o status muda.
+            criados, resolvidos = await sincronizar_alertas(conn)
+            for s in criados:
+                print(f"   🚨 ALERTA aberto: {s.nome} ({nivel_para(s.status)}) "
+                      f"— {s.ocupacao}% ocupação")
+            for pid in resolvidos:
+                print(f"   ✅ alerta resolvido: {pid} (normalizou)")
             print()
             if args.ticks == 0 or tick < args.ticks:
                 await asyncio.sleep(args.interval)

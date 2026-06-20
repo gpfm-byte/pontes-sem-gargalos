@@ -9,7 +9,7 @@ import pytest
 
 from app.deps import get_repo
 from app.main import app
-from app.schemas import Coordenadas, LeituraSensor, Ponte
+from app.schemas import Alerta, Coordenadas, LeituraSensor, Ponte
 
 DIA = date(2018, 8, 28)
 
@@ -27,6 +27,18 @@ PONTES = [
 
 # Ocupação fixa por ponte -> status determinístico independente da hora do teste.
 OCUPACAO = {"buarque-de-macedo": 40, "mauricio-nassau": 95, "giratoria": 80}
+
+# Alertas ativos persistidos (gerados pelo sistema).
+ALERTAS = [
+    Alerta(id="a1", ponte_id="mauricio-nassau", tipo="congestionamento",
+           nivel="critico", mensagem="Maurício de Nassau: ocupação em 95%",
+           criado_em=datetime(2026, 6, 20, 13, 0, tzinfo=timezone.utc),
+           resolvido_em=None, gerado_por_ia=False),
+    Alerta(id="a2", ponte_id="giratoria", tipo="congestionamento",
+           nivel="alto", mensagem="Giratória: ocupação em 80%",
+           criado_em=datetime(2026, 6, 20, 12, 30, tzinfo=timezone.utc),
+           resolvido_em=None, gerado_por_ia=False),
+]
 
 
 class FakeRepo:
@@ -50,6 +62,9 @@ class FakeRepo:
             )
             for h in range(24)
         ]
+
+    async def get_alertas_ativos(self):
+        return ALERTAS
 
     async def ping(self):
         return True
@@ -103,16 +118,17 @@ async def test_get_fluxo_horas_6_a_21(client):
     assert all("veiculos" in d for d in data)
 
 
-async def test_get_alertas_somente_congestionado_ou_bloqueado(client):
+async def test_get_alertas_serve_persistidos(client):
     r = await client.get("/api/alertas")
     assert r.status_code == 200
     data = r.json()
     ids = {a["ponteId"]: a for a in data}
-    # buarque (normal) não gera alerta; nassau (bloqueado) e giratoria (congestionado) sim
+    # buarque (normal) não tem alerta ativo; nassau e giratoria sim
     assert "buarque-de-macedo" not in ids
     assert ids["mauricio-nassau"]["nivel"] == "critico"
     assert ids["giratoria"]["nivel"] == "alto"
     assert all(a["geradoPorIA"] is False for a in data)
+    assert all("criadoEm" in a for a in data)
 
 
 async def test_health(client):

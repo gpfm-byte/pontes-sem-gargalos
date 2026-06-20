@@ -17,6 +17,7 @@ import httpx
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.config import settings  # noqa: E402
 from app.services import cttu  # noqa: E402
+from app.services.alertas import sincronizar_alertas  # noqa: E402
 from app.services.ingest_math import build_leituras  # noqa: E402
 
 # Pontes e seus sensores (FS002REC atende 2 pontes).
@@ -69,6 +70,9 @@ async def main() -> None:
         )
         n = await conn.fetchval("SELECT count(*) FROM leituras_sensor")
         print(f"leituras_sensor: {n} linhas gravadas (dia {dia})")
+
+        criados, _ = await sincronizar_alertas(conn)
+        print(f"alertas: {len(criados)} aberto(s) a partir do status atual")
     finally:
         await conn.close()
 

@@ -2,6 +2,7 @@
 from datetime import date
 
 from app.services import cttu
+from app.services.alertas import StatusAtual, decidir, nivel_para
 from app.services.compute import derive_status, status_cor
 from app.services.ingest_math import build_leituras
 
@@ -71,3 +72,29 @@ def test_status_cor():
     assert status_cor("atencao") == "orange"
     assert status_cor("congestionado") == "red"
     assert status_cor("bloqueado") == "red"
+
+
+def test_decidir_abre_alerta_quando_congestiona_sem_ativo():
+    statuses = [StatusAtual("giratoria", "Giratória", "congestionado", 80)]
+    criar, resolver = decidir(statuses, ativos=set())
+    assert [s.ponte_id for s in criar] == ["giratoria"]
+    assert resolver == []
+
+
+def test_decidir_nao_duplica_alerta_ativo():
+    statuses = [StatusAtual("giratoria", "Giratória", "bloqueado", 95)]
+    criar, resolver = decidir(statuses, ativos={"giratoria"})
+    assert criar == []
+    assert resolver == []
+
+
+def test_decidir_resolve_quando_normaliza():
+    statuses = [StatusAtual("giratoria", "Giratória", "normal", 30)]
+    criar, resolver = decidir(statuses, ativos={"giratoria"})
+    assert criar == []
+    assert resolver == ["giratoria"]
+
+
+def test_nivel_para():
+    assert nivel_para("bloqueado") == "critico"
+    assert nivel_para("congestionado") == "alto"
